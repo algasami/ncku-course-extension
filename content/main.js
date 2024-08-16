@@ -77,9 +77,6 @@ async function main() {
 
       discipline_elem.textContent = review.discipline + review.class;
 
-      ratings.appendChild(discipline_elem);
-      ratings.appendChild(link_elem);
-
       if (review.rate_count > 0) {
         const got_elem = document.createElement("div");
         got_elem.className = "ncku-badge";
@@ -92,18 +89,29 @@ async function main() {
         got_elem.style.backgroundColor = generate_color(review.got);
         cold_elem.style.backgroundColor = generate_color(review.cold);
         sweet_elem.style.backgroundColor = generate_color(review.sweet);
-        got_elem.textContent = `收穫${review.got}${generate_emoji(review.got)}`;
-        cold_elem.textContent = `涼度${review.cold}${generate_emoji(
-          review.cold
-        )}`;
-        sweet_elem.textContent = `甜度${review.sweet}${generate_emoji(
-          review.sweet
-        )}`;
+        got_elem.textContent = `收穫${
+          Math.round(review.got * 10) / 10
+        }${generate_emoji(review.got)}`;
+        cold_elem.textContent = `涼度${
+          Math.round(review.cold * 10) / 10
+        }${generate_emoji(review.cold)}`;
+        sweet_elem.textContent = `甜度${
+          Math.round(review.sweet * 10) / 10
+        }${generate_emoji(review.sweet)}`;
 
         ratings.appendChild(got_elem);
         ratings.appendChild(cold_elem);
         ratings.appendChild(sweet_elem);
+      } else {
+        const info_elem = document.createElement("div");
+        info_elem.className = "ncku-badge";
+        info_elem.style.backgroundColor = "red";
+        info_elem.textContent = "無相關評論(┛`д´)┛";
+
+        ratings.appendChild(info_elem);
       }
+      ratings.appendChild(discipline_elem);
+      ratings.appendChild(link_elem);
 
       elem.appendChild(ratings);
     }
@@ -114,7 +122,7 @@ async function main() {
 main();
 
 function generate_color(level) {
-  if (level > 7) {
+  if (level > 7.5) {
     return "rgb(0, 200, 0)";
   } else if (level > 5) {
     return "rgb(200,200,0)";
