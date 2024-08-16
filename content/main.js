@@ -74,7 +74,6 @@ async function main() {
       const discipline_elem = document.createElement("div");
       discipline_elem.className = "ncku-badge";
       discipline_elem.style.backgroundColor = "black";
-      discipline_elem.href = `https://nckuhub.com/course/${id}`;
 
       const link_elem = document.createElement("a");
       link_elem.className = "ncku-badge";
@@ -85,7 +84,7 @@ async function main() {
 
       const review = course_datas[id];
 
-      discipline_elem.textContent = review.discipline;
+      discipline_elem.textContent = review.discipline + review.class;
 
       got_elem.style.backgroundColor = generate_color(review.got);
       cold_elem.style.backgroundColor = generate_color(review.cold);
