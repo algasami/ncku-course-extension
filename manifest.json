@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "NCKU Course Info",
+  "description": "Smart Injection",
+  "version": "0.1",
+  "action": {
+    "default_popup": "default.html",
+    "default_icon": "icon.png"
+  },
+  "content_scripts": [
+    {
+      "js": ["scripts/content.js"],
+      "matches": ["https://course.ncku.edu.tw/*"]
+    }
+  ],
+  "permissions": ["storage", "notifications"],
+  "host_permissions": ["https://nckuhub.com/*"],
+  "background": {
+    "service_worker": "workers/preloader.js"
+  }
+}
