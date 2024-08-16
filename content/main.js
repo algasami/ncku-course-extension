@@ -62,15 +62,6 @@ async function main() {
       const ratings = document.createElement("div");
       ratings.className = "ncku-rating";
 
-      const got_elem = document.createElement("div");
-      got_elem.className = "ncku-badge";
-
-      const cold_elem = document.createElement("div");
-      cold_elem.className = "ncku-badge";
-
-      const sweet_elem = document.createElement("div");
-      sweet_elem.className = "ncku-badge";
-
       const discipline_elem = document.createElement("div");
       discipline_elem.className = "ncku-badge";
       discipline_elem.style.backgroundColor = "black";
@@ -86,22 +77,33 @@ async function main() {
 
       discipline_elem.textContent = review.discipline + review.class;
 
-      got_elem.style.backgroundColor = generate_color(review.got);
-      cold_elem.style.backgroundColor = generate_color(review.cold);
-      sweet_elem.style.backgroundColor = generate_color(review.sweet);
-      got_elem.textContent = `收穫${review.got}${generate_emoji(review.got)}`;
-      cold_elem.textContent = `涼度${review.cold}${generate_emoji(
-        review.cold
-      )}`;
-      sweet_elem.textContent = `甜度${review.sweet}${generate_emoji(
-        review.sweet
-      )}`;
-
-      ratings.appendChild(got_elem);
-      ratings.appendChild(cold_elem);
-      ratings.appendChild(sweet_elem);
       ratings.appendChild(discipline_elem);
       ratings.appendChild(link_elem);
+
+      if (review.rate_count > 0) {
+        const got_elem = document.createElement("div");
+        got_elem.className = "ncku-badge";
+
+        const cold_elem = document.createElement("div");
+        cold_elem.className = "ncku-badge";
+
+        const sweet_elem = document.createElement("div");
+        sweet_elem.className = "ncku-badge";
+        got_elem.style.backgroundColor = generate_color(review.got);
+        cold_elem.style.backgroundColor = generate_color(review.cold);
+        sweet_elem.style.backgroundColor = generate_color(review.sweet);
+        got_elem.textContent = `收穫${review.got}${generate_emoji(review.got)}`;
+        cold_elem.textContent = `涼度${review.cold}${generate_emoji(
+          review.cold
+        )}`;
+        sweet_elem.textContent = `甜度${review.sweet}${generate_emoji(
+          review.sweet
+        )}`;
+
+        ratings.appendChild(got_elem);
+        ratings.appendChild(cold_elem);
+        ratings.appendChild(sweet_elem);
+      }
 
       elem.appendChild(ratings);
     }

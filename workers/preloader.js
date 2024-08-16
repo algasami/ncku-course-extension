@@ -63,6 +63,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               sweet: bod.sweet,
               discipline: bod.courseInfo["系所名稱"],
               class: bod.courseInfo["班別"],
+              rate_count: bod.rate_count,
               id: bod.courseInfo.id,
             };
           })
