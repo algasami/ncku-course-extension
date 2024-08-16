@@ -60,43 +60,25 @@ async function main() {
   for (let { elem, classid } of elems) {
     for (let id of db.courses[classid].map((pack) => pack.id)) {
       const ratings = document.createElement("div");
-      ratings.style.display = "flex";
-      ratings.style.justifyContent = "center";
-      ratings.style.flexDirection = "row";
-      ratings.style.border = "1px";
-      ratings.style.borderStyle = "solid";
+      ratings.className = "ncku-rating";
 
       const got_elem = document.createElement("div");
-      got_elem.style.borderRadius = "10px";
-      got_elem.style.color = "beige";
-      got_elem.style.padding = "4px";
-      got_elem.style.margin = "2px";
+      got_elem.className = "ncku-badge";
 
       const cold_elem = document.createElement("div");
-      cold_elem.style.borderRadius = "10px";
-      cold_elem.style.color = "beige";
-      cold_elem.style.padding = "4px";
-      cold_elem.style.margin = "2px";
+      cold_elem.className = "ncku-badge";
 
       const sweet_elem = document.createElement("div");
-      sweet_elem.style.borderRadius = "10px";
-      sweet_elem.style.color = "beige";
-      sweet_elem.style.padding = "4px";
-      sweet_elem.style.margin = "2px";
+      sweet_elem.className = "ncku-badge";
 
       const discipline_elem = document.createElement("div");
-      discipline_elem.style.borderRadius = "10px";
+      discipline_elem.className = "ncku-badge";
       discipline_elem.style.backgroundColor = "black";
-      discipline_elem.style.padding = "4px";
-      discipline_elem.style.margin = "2px";
-      discipline_elem.style.color = "beige";
       discipline_elem.href = `https://nckuhub.com/course/${id}`;
 
       const link_elem = document.createElement("a");
-      link_elem.style.borderRadius = "10px";
+      link_elem.className = "ncku-badge";
       link_elem.style.backgroundColor = "black";
-      link_elem.style.padding = "4px";
-      link_elem.style.margin = "2px";
       link_elem.style.color = "blue";
       link_elem.textContent = `前往${id}頁面`;
       link_elem.href = `https://nckuhub.com/course/${id}`;

@@ -9,7 +9,8 @@
   },
   "content_scripts": [
     {
-      "js": ["scripts/content.js"],
+      "js": ["content/main.js"],
+      "css": ["content/inject.css"],
       "matches": ["https://course.ncku.edu.tw/*"]
     }
   ],
