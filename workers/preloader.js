@@ -6,6 +6,13 @@ function course_info_gen(course_id) {
   return `https://nckuhub.com/course/${course_id}`;
 }
 
+function empty_check(str) {
+  if (str.length == 0) {
+    return "無";
+  }
+  return str;
+}
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getCourses") {
     chrome.storage.local
@@ -34,7 +41,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           timestamp: new Date().getTime(),
         };
         for (let c of courses) {
-          const key = c["課程碼"];
+          const key = c["系號"] + "-" + c["選課序號"];
           if (indexed_data.courses[key]) {
             indexed_data.courses[key].push(c);
           } else {
@@ -61,8 +68,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               got: bod.got,
               cold: bod.cold,
               sweet: bod.sweet,
-              discipline: bod.courseInfo["系所名稱"],
-              class: bod.courseInfo["班別"],
+              discipline: empty_check(bod.courseInfo["系所名稱"]?.trim()),
+              class: empty_check(bod.courseInfo["班別"]?.trim()),
+              category: empty_check(bod.courseInfo["類別"]?.trim()),
               rate_count: bod.rate_count,
               id: bod.courseInfo.id,
             };

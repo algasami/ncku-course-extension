@@ -1,42 +1,96 @@
 async function main() {
   console.log("[NCKU CE] Active");
 
+  const qry_code = getParameterByName(location.search, "c");
+  if (qry_code == "qry11215") {
+    await inject_qry11215();
+  } else if (qry_code == "cos31315") {
+    await inject_cos31315();
+  }
+  console.log("[NCKU CE] Injection Done!");
+}
+
+function sendNotification(title, message) {
+  chrome.runtime.sendMessage({
+    action: "sendNotification",
+    title,
+    message,
+  });
+}
+
+async function getCourses() {
   console.log("[NCKU CE] Loading Database. This may take a while...");
   const res = await chrome.runtime.sendMessage({ action: "getCourses" });
-
   if (res.error) {
-    chrome.runtime.sendMessage({
-      action: "sendNotification",
-      title: "無法插入資料",
-      message: res.error,
-    });
-    return;
+    sendNotification("無法插入資料", res.error);
+    return undefined;
   }
-  console.log("[NCKU CE] Database loaded. Attempting to inject...");
+  console.log("[NCKU CE] Database loaded.");
+  return res.data;
+}
 
-  const db = res.data; // {courses, length, timestamp}
+async function fetchCourseData(ids) {
+  return (
+    await chrome.runtime.sendMessage({
+      action: "fetchCourseData",
+      ids,
+    })
+  ).data;
+}
+
+async function inject_cos31315() {
+  const db = await getCourses();
+
+  const ids = new Set();
+  const elems = [];
+  for (let td of document.querySelectorAll(".table tbody tr, .c-div")) {
+    const res_reg =
+      td.id?.match("[A-Z\\d]{2}-\\d{3}") ??
+      (td.tagName == "DIV"
+        ? td.textContent?.match("[A-Z\\d]{2}-\\d{3}")
+        : undefined);
+    if (res_reg == null) {
+      continue;
+    }
+    const classid = res_reg[0];
+
+    const course_datas = db.courses[classid];
+    if (!course_datas) {
+      continue;
+    }
+    for (let subview of course_datas) {
+      ids.add(subview.id);
+    }
+    elems.push({
+      elem: td,
+      classid,
+    });
+  }
+  const id_arr = Array.from(ids);
+  const course_datas = await fetchCourseData(id_arr);
+
+  for (let { elem, classid } of elems) {
+    for (let id of db.courses[classid].map((pack) => pack.id)) {
+      elem.appendChild(generate_review(course_datas, id));
+    }
+  }
+}
+
+async function inject_qry11215() {
+  const db = await getCourses();
   let all_rows = document.querySelectorAll(".table tbody tr td");
   const ids = new Set();
   const elems = [];
   for (let td of all_rows) {
     const textcontent = td.textContent.trim();
-    const res_reg = textcontent?.match("[A-Z][A-Z\\d]{6}");
+    const res_reg = textcontent?.match("[A-Z\\d]{2}-\\d{3}");
     if (textcontent == null || res_reg == null) {
       continue;
     }
     const classid = res_reg[0];
 
-    const footer = document.createElement("footer");
-    footer.style.color = "gray";
-    footer.style.fontSize = "smaller";
-    footer.style.fontStyle = "italic";
-    td.appendChild(footer);
-
     const course_datas = db.courses[classid];
-    if (course_datas) {
-      footer.textContent = "此欄位已使用nckuhub.com搜尋";
-    } else {
-      footer.textContent = "nckuhub.com無相關資料";
+    if (!course_datas) {
       continue;
     }
     for (let subview of course_datas) {
@@ -50,76 +104,80 @@ async function main() {
 
   const id_arr = Array.from(ids);
 
-  const course_datas = (
-    await chrome.runtime.sendMessage({
-      action: "fetchCourseData",
-      ids: id_arr,
-    })
-  ).data;
+  console.log("[NCKU CE] Source: NCKU Hub");
+
+  const course_datas = await fetchCourseData(id_arr);
+
+  console.log("[NCKU CE] Source: NCKU Hub Loaded");
 
   for (let { elem, classid } of elems) {
     for (let id of db.courses[classid].map((pack) => pack.id)) {
-      const ratings = document.createElement("div");
-      ratings.className = "ncku-rating";
-
-      const discipline_elem = document.createElement("div");
-      discipline_elem.className = "ncku-badge";
-      discipline_elem.style.backgroundColor = "black";
-
-      const link_elem = document.createElement("a");
-      link_elem.className = "ncku-badge";
-      link_elem.style.backgroundColor = "black";
-      link_elem.style.color = "blue";
-      link_elem.textContent = `前往${id}頁面`;
-      link_elem.href = `https://nckuhub.com/course/${id}`;
-
-      const review = course_datas[id];
-
-      discipline_elem.textContent = review.discipline + review.class;
-
-      if (review.rate_count > 0) {
-        const got_elem = document.createElement("div");
-        got_elem.className = "ncku-badge";
-
-        const cold_elem = document.createElement("div");
-        cold_elem.className = "ncku-badge";
-
-        const sweet_elem = document.createElement("div");
-        sweet_elem.className = "ncku-badge";
-        got_elem.style.backgroundColor = generate_color(review.got);
-        cold_elem.style.backgroundColor = generate_color(review.cold);
-        sweet_elem.style.backgroundColor = generate_color(review.sweet);
-        got_elem.textContent = `收穫${
-          Math.round(review.got * 10) / 10
-        }${generate_emoji(review.got)}`;
-        cold_elem.textContent = `涼度${
-          Math.round(review.cold * 10) / 10
-        }${generate_emoji(review.cold)}`;
-        sweet_elem.textContent = `甜度${
-          Math.round(review.sweet * 10) / 10
-        }${generate_emoji(review.sweet)}`;
-
-        ratings.appendChild(got_elem);
-        ratings.appendChild(cold_elem);
-        ratings.appendChild(sweet_elem);
-      } else {
-        const info_elem = document.createElement("div");
-        info_elem.className = "ncku-badge";
-        info_elem.style.backgroundColor = "red";
-        info_elem.textContent = "無相關評論(┛`д´)┛";
-
-        ratings.appendChild(info_elem);
-      }
-      ratings.appendChild(discipline_elem);
-      ratings.appendChild(link_elem);
-
-      elem.appendChild(ratings);
+      elem.appendChild(generate_review(course_datas, id));
     }
   }
-  console.log("[NCKU CE] Injection Done!");
 }
 
 main();
+
+function generate_review(course_datas, id) {
+  const ratings = document.createElement("div");
+  ratings.className = "ncku-rating";
+
+  const subrow = document.createElement("div");
+  subrow.className = "ncku-subrow";
+  const subrow1 = document.createElement("div");
+  subrow1.className = "ncku-subrow";
+
+  const discipline_elem = document.createElement("a");
+  discipline_elem.className = "ncku-badge";
+  discipline_elem.style.backgroundColor = "black";
+  discipline_elem.style.color = "blue";
+  discipline_elem.href = `https://nckuhub.com/course/${id}`;
+
+  const review = course_datas[id];
+  console.log(review);
+
+  discipline_elem.textContent = `${review.discipline}|${review.class}|${review.category}`;
+
+  if (review.rate_count > 0) {
+    const got_elem = document.createElement("div");
+    got_elem.className = "ncku-badge";
+
+    const cold_elem = document.createElement("div");
+    cold_elem.className = "ncku-badge";
+
+    const sweet_elem = document.createElement("div");
+    sweet_elem.className = "ncku-badge";
+    got_elem.style.backgroundColor = generate_color(review.got);
+    cold_elem.style.backgroundColor = generate_color(review.cold);
+    sweet_elem.style.backgroundColor = generate_color(review.sweet);
+    got_elem.textContent = `收穫${
+      Math.round(review.got * 10) / 10
+    }${generate_emoji(review.got)}`;
+    cold_elem.textContent = `涼度${
+      Math.round(review.cold * 10) / 10
+    }${generate_emoji(review.cold)}`;
+    sweet_elem.textContent = `甜度${
+      Math.round(review.sweet * 10) / 10
+    }${generate_emoji(review.sweet)}`;
+
+    subrow.appendChild(got_elem);
+    subrow.appendChild(cold_elem);
+    subrow.appendChild(sweet_elem);
+  } else {
+    const info_elem = document.createElement("div");
+    info_elem.className = "ncku-badge";
+    info_elem.style.backgroundColor = "red";
+    info_elem.textContent = "無相關評論(┛`д´)┛";
+
+    subrow.appendChild(info_elem);
+  }
+  subrow1.appendChild(discipline_elem);
+
+  ratings.appendChild(subrow);
+  ratings.appendChild(subrow1);
+  return ratings;
+}
 
 function generate_color(level) {
   if (level > 7.5) {
@@ -136,4 +194,11 @@ function generate_emoji(level) {
     return "👌";
   }
   return "❌";
+}
+
+function getParameterByName(queryString, name) {
+  name = name.replace(/[[^$.|?*+(){}\\]/g, "\\$&");
+  var regex = new RegExp("(?:[?&]|^)" + name + "=([^&#]*)");
+  var results = regex.exec(queryString);
+  return decodeURIComponent(results[1].replace(/\+/g, " ")) || "";
 }

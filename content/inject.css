@@ -1,19 +1,16 @@
 .ncku-rating {
   display: flex;
-  justify-content: center;
   flex-direction: column;
-  border: 1px;
-  border-style: solid;
   margin: 4px;
+}
+
+.ncku-subrow {
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
 }
 .ncku-badge {
   color: white;
   padding: 4px;
   text-align: center;
-}
-
-@media only screen and (max-width: 750px) {
-  .ncku-rating {
-    flex-direction: row;
-  }
 }
