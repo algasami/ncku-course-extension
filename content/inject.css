@@ -2,6 +2,8 @@
   display: flex;
   flex-direction: column;
   margin: 4px;
+  font-size: small;
+  font-weight: normal;
 }
 
 .ncku-subrow {

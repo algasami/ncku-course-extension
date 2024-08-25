@@ -38,7 +38,7 @@ async function inject() {
   const ids = new Set();
   const elems = [];
   for (let elem of document.querySelectorAll(
-    ".table tbody tr, .table tbody tr td, .c-div"
+    ".table tbody tr, .table tbody tr td :not(:has(.c-div)), .c-div"
   )) {
     const res_reg =
       elem.id?.match("[A-Z\\d]{2}-\\d{3}") ??
