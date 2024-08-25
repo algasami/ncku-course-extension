@@ -1,12 +1,6 @@
 async function main() {
   console.log("[NCKU CE] Active");
-
-  const qry_code = getParameterByName(location.search, "c");
-  if (qry_code == "qry11215") {
-    await inject_qry11215();
-  } else if (qry_code == "cos31315") {
-    await inject_cos31315();
-  }
+  await inject();
   console.log("[NCKU CE] Injection Done!");
 }
 
@@ -38,16 +32,18 @@ async function fetchCourseData(ids) {
   ).data;
 }
 
-async function inject_cos31315() {
+async function inject() {
   const db = await getCourses();
 
   const ids = new Set();
   const elems = [];
-  for (let td of document.querySelectorAll(".table tbody tr, .c-div")) {
+  for (let elem of document.querySelectorAll(
+    ".table tbody tr, .table tbody tr td, .c-div"
+  )) {
     const res_reg =
-      td.id?.match("[A-Z\\d]{2}-\\d{3}") ??
-      (td.tagName == "DIV"
-        ? td.textContent?.match("[A-Z\\d]{2}-\\d{3}")
+      elem.id?.match("[A-Z\\d]{2}-\\d{3}") ??
+      (elem.tagName == "DIV" || elem.tagName == "TD"
+        ? elem.textContent?.match("[A-Z\\d]{2}-\\d{3}")
         : undefined);
     if (res_reg == null) {
       continue;
@@ -62,53 +58,12 @@ async function inject_cos31315() {
       ids.add(subview.id);
     }
     elems.push({
-      elem: td,
+      elem: elem,
       classid,
     });
   }
   const id_arr = Array.from(ids);
   const course_datas = await fetchCourseData(id_arr);
-
-  for (let { elem, classid } of elems) {
-    for (let id of db.courses[classid].map((pack) => pack.id)) {
-      elem.appendChild(generate_review(course_datas, id));
-    }
-  }
-}
-
-async function inject_qry11215() {
-  const db = await getCourses();
-  let all_rows = document.querySelectorAll(".table tbody tr td");
-  const ids = new Set();
-  const elems = [];
-  for (let td of all_rows) {
-    const textcontent = td.textContent.trim();
-    const res_reg = textcontent?.match("[A-Z\\d]{2}-\\d{3}");
-    if (textcontent == null || res_reg == null) {
-      continue;
-    }
-    const classid = res_reg[0];
-
-    const course_datas = db.courses[classid];
-    if (!course_datas) {
-      continue;
-    }
-    for (let subview of course_datas) {
-      ids.add(subview.id);
-    }
-    elems.push({
-      elem: td,
-      classid,
-    });
-  }
-
-  const id_arr = Array.from(ids);
-
-  console.log("[NCKU CE] Source: NCKU Hub");
-
-  const course_datas = await fetchCourseData(id_arr);
-
-  console.log("[NCKU CE] Source: NCKU Hub Loaded");
 
   for (let { elem, classid } of elems) {
     for (let id of db.courses[classid].map((pack) => pack.id)) {
@@ -135,7 +90,6 @@ function generate_review(course_datas, id) {
   discipline_elem.href = `https://nckuhub.com/course/${id}`;
 
   const review = course_datas[id];
-  console.log(review);
 
   discipline_elem.textContent = `${review.discipline}|${review.class}|${review.category}`;
 
@@ -194,11 +148,4 @@ function generate_emoji(level) {
     return "👌";
   }
   return "❌";
-}
-
-function getParameterByName(queryString, name) {
-  name = name.replace(/[[^$.|?*+(){}\\]/g, "\\$&");
-  var regex = new RegExp("(?:[?&]|^)" + name + "=([^&#]*)");
-  var results = regex.exec(queryString);
-  return decodeURIComponent(results[1].replace(/\+/g, " ")) || "";
 }
