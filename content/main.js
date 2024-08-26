@@ -88,6 +88,8 @@ function generate_review(course_datas, id) {
   discipline_elem.style.backgroundColor = "black";
   discipline_elem.style.color = "blue";
   discipline_elem.href = `https://nckuhub.com/course/${id}`;
+  discipline_elem.target = "_blank";
+  discipline_elem.rel = "noopener noreferrer";
 
   const review = course_datas[id];
 
